@@ -141,9 +141,9 @@ int main(int argc, char** argv) {
     }
 
     if (attempts >= attemps_limit) {
-        printf("You lose. The word was %s", target_word);
+        printf("You lose. The word was %s\n", target_word);
     } else {
-        printf("You win!");
+        printf("You win!\n");
     }
 
     for (size_t i = 0; i < count; i++) {
