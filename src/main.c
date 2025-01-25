@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define VERSION "v1.0.0"
+
 bool contains_non_ascii(const char *str) {
     while (*str) {
         if ((unsigned char)*str > 127) {
@@ -59,7 +61,7 @@ void print_colored_guess(const char *guess, const char *target_word) {
 
 int main(int argc, char** argv) {
     if (argc != 3) {
-        printf("Usage: c-wordle /path/to/wordlist number_of_attempts\nc-wordle /usr/share/dict/words 5");
+        printf("c-wordle %s\nUsage: c-wordle /path/to/wordlist number_of_attempts\nc-wordle /usr/share/dict/words 5", VERSION);
         return EXIT_FAILURE;
     }
 
