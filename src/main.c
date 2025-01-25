@@ -24,21 +24,48 @@ void toupperstr(char *str) {
 }
 
 int rand_lim(int limit) {
-    int divisor = RAND_MAX/(limit+1);
+    int divisor = RAND_MAX / (limit + 1);
     int retval;
-
     do { 
         retval = rand() / divisor;
     } while (retval > limit);
-
     return retval;
 }
 
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        printf("Usage: c-wordle /path/to/wordlist");
+void print_colored_guess(const char *guess, const char *target_word) {
+    for (size_t i = 0; i < 5; i++) {
+        if (guess[i] == target_word[i]) {
+            // Green for correct position
+            printf("\033[1;32m%c", guess[i]);
+        } else {
+            bool found = false;
+            for (size_t j = 0; j < 5; j++) {
+                if (guess[i] == target_word[j] && guess[j] != target_word[j]) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {
+                // Yellow
+                printf("\033[1;33m%c", guess[i]);
+            } else {
+                // Gray
+                printf("\033[1;90m%c", guess[i]);
+            }
+        }
+    }
+    printf("\033[0m"); // Reset colors
+}
+
+int main(int argc, char** argv) {
+    if (argc != 3) {
+        printf("Usage: c-wordle /path/to/wordlist number_of_attemps\nc-wordle /usr/share/dict/words 5");
         return EXIT_FAILURE;
     }
+
+    char* endptr;
+    int attemps_limit = (int) strtol(argv[2], &endptr, 10);
+    
     
     srand(time(NULL));
     FILE *file_ptr = fopen(argv[1], "r");
@@ -49,30 +76,75 @@ int main(int argc, char* argv[]) {
 
     size_t cap = 1024;
     char **words = malloc(cap * sizeof(char *));
-
     char buf[128];
     size_t count = 0;
+
     while (fgets(buf, sizeof(buf), file_ptr)) {
-        buf[strcspn(buf, "\n")] = '\0';
+        buf[strcspn(buf, "\n")] = '\0'; // Remove newline
         if (!strstr(buf, "'") && !contains_non_ascii(buf) && strlen(buf) == 5) {
             if (count >= cap) {
                 cap *= 2;
                 char **temp = realloc(words, cap * sizeof(char *));
+                if (!temp) {
+                    perror("Failed to allocate memory.");
+                    return EXIT_FAILURE;
+                }
                 words = temp;
             }
-
             words[count] = malloc(strlen(buf) + 1);
             toupperstr(buf);
             strcpy(words[count], buf);
-            
             count++;
         }
     }
     fclose(file_ptr);
 
-    int word_index = rand_lim(count - 1);
+    if (count == 0) {
+        printf("No valid words found in the word list.\n");
+        free(words);
+        return EXIT_FAILURE;
+    }
 
-    printf("%s", words[word_index]);
+    int word_index = rand_lim(count - 1);
+    char *target_word = words[word_index];
+
+
+    char word_guess[64];
+    bool win = false;
+
+    size_t attempts = 0;
+
+    while (!win && attempts < attemps_limit) {
+        printf("Enter your guess: ");
+        if (!scanf("%5s", word_guess)) {
+            printf("Invalid input. Try again.\n");
+            continue;
+        }
+
+        toupperstr(word_guess);
+
+        if (strlen(word_guess) != 5) {
+            printf("Your guess must be exactly 5 letters.\n");
+            continue;
+        }
+
+        if (attempts > 0) {
+            printf("\033[1A"); // Move cursor up
+            printf("\033[2K"); // Clear the line
+        }
+
+        print_colored_guess(word_guess, target_word);
+        printf("\n");
+
+        win = !strcmp(target_word, word_guess);
+        attempts++;
+    }
+
+    if (attempts >= attemps_limit) {
+        printf("You lose. The word was %s", target_word);
+    } else {
+        printf("You win!");
+    }
 
     for (size_t i = 0; i < count; i++) {
         free(words[i]);
