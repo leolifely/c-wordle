@@ -3,3 +3,4 @@ file(GLOB src "src/*.c")
 
 project(c-wordle)
 add_executable(c-wordle ${src})
+install(TARGETS c-wordle DESTINATION bin)
