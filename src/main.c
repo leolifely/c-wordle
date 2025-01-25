@@ -59,7 +59,7 @@ void print_colored_guess(const char *guess, const char *target_word) {
 
 int main(int argc, char** argv) {
     if (argc != 3) {
-        printf("Usage: c-wordle /path/to/wordlist number_of_attemps\nc-wordle /usr/share/dict/words 5");
+        printf("Usage: c-wordle /path/to/wordlist number_of_attempts\nc-wordle /usr/share/dict/words 5");
         return EXIT_FAILURE;
     }
 
