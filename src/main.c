@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define VERSION "v1.0.0"
+#define VERSION "v1.1.0"
 
 bool contains_non_ascii(const char *str) {
     while (*str) {
