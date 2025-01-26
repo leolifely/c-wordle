@@ -49,13 +49,13 @@ int rand_lim(int limit) {
 }
 
 void print_colored_guess(const char *guess, const char *target_word) {
-    for (size_t i = 0; i < 5; i++) {
+    for (size_t i = 0; i < strlen(target_word); i++) {
         if (guess[i] == target_word[i]) {
             // Green for correct position
             printf("\033[1;32m%c", guess[i]);
         } else {
             bool found = false;
-            for (size_t j = 0; j < 5; j++) {
+            for (size_t j = 0; j < strlen(target_word); j++) {
                 if (guess[i] == target_word[j] && guess[j] != target_word[j]) {
                     found = true;
                     break;
@@ -74,10 +74,22 @@ void print_colored_guess(const char *guess, const char *target_word) {
 }
 
 int main(int argc, char** argv) {
-    if (argc != 3) {
+    int word_size;
+    if (argc != 3 && argc != 5) {
         printf("c-wordle %s\nUsage: c-wordle /path/to/wordlist number_of_attempts\nc-wordle /usr/share/dict/words 5", VERSION);
         return EXIT_FAILURE;
     }
+    if (argc == 5) {
+        if (!strcmp(argv[3], "-s")) {
+            char* endptr;
+            word_size = (int) strtol(argv[4], &endptr, 10);
+        } else {
+            return EXIT_FAILURE;
+        }
+    } else {
+        word_size = 5;
+    }
+    
 
     char* endptr;
     int attemps_limit = (int) strtol(argv[2], &endptr, 10);
@@ -97,7 +109,7 @@ int main(int argc, char** argv) {
 
     while (fgets(buf, sizeof(buf), file_ptr)) {
         buf[strcspn(buf, "\n")] = '\0'; // Remove newline
-        if (!strstr(buf, "'") && !contains_non_ascii(buf) && strlen(buf) == 5) {
+        if (!strstr(buf, "'") && !contains_non_ascii(buf) && strlen(buf) == word_size) {
             if (count >= cap) {
                 cap *= 2;
                 char **temp = realloc(words, cap * sizeof(char *));
@@ -132,15 +144,15 @@ int main(int argc, char** argv) {
 
     while (!win && attempts < attemps_limit) {
         printf("Enter your guess: ");
-        if (!scanf("%5s", word_guess)) {
+        if (!scanf("%s", word_guess)) {
             printf("Invalid input. Try again.\n");
             continue;
         }
 
         toupperstr(word_guess);
 
-        if (strlen(word_guess) != 5) {
-            printf("Your guess must be exactly 5 letters.\n");
+        if (strlen(word_guess) != word_size) {
+            printf("Your guess must be exactly %i letters.\n", word_size);
             continue;
         }
 
